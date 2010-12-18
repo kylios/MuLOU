@@ -1,0 +1,38 @@
+MuLou - MUsic Library Organization Utility
+
+Mulou is a program designed to organize one's music collection.  The program
+works best when there are many songs that were taken from more than one
+source, and therefore reside multiple times in the same music library.  The
+program will recursively scan through every folder in the music library and
+read the tags for each song.  It uses the tags to determing duplicate song
+files, but not before "normalizing" the song files.
+
+---------------------------------------------------------------------------
+normalization
+
+There are several steps in the normalization process, and future versions of
+the program will allow for more configuration in this process.  Here is a 
+list of everything the program will do to the song tags:
+
+  - Convert all tags to Upper Camel Case
+  - Convert roman numerals to Arabic numerals
+  - Change tags that end in ", The" to instead begin with "The"
+  - Remove (Disc 1) or [Disc 1] from the end of tag names
+  - Fix all other parentheses so that a space exists before the left 
+    parenthese and a space exists after the right parenthese.
+  - Change & to the word "and"
+  - Tag names which are abbreviated like A.B.C. get converted to ABC
+
+
+---------------------------------------------------------------------------
+Running the program
+
+version 0.01
+The only executable is the test driver, located in mulou/src/SandBox/test.pl
+It will index and normalize all songs located in /home/kyle/Music, but this
+path can be changed easily.  It is easiest to route the output to a text
+file, as there is a lot of output which may not be readable in a terminal 
+window.  The output at the end is what the tags get normalized as.  Check 
+this and make sure that the normalization worked for all songs.  If you 
+notice any problems, please report them at kracette@gmail.com.
+

@@ -1,0 +1,163 @@
+#!/usr/bin/perl
+
+# This structure acts as an index structure to store song data with references
+# to files on the file system.  When indexing song data such as artist, album,
+# and title tags, the index will automatically normalize the data and detect
+# duplicate files.  
+
+package TagIndex;
+
+use strict;
+
+# These words need to be lower case unless they are the first word
+our @lower_words = (
+    'and',
+    'or',
+    'but',
+    'nor',
+    'by',
+    'the',
+    'a', 
+    'an',
+    'in', 
+    'then',
+    'at',
+    'by',
+    'for',
+    'from',
+    'into',
+    'of',
+    'off',
+    'on',
+    'onto',
+    'out',
+    'over',
+    'to',
+    'up',
+    'with'
+);
+
+
+sub new
+{
+    my $class = shift();
+    my $self = {
+        _artists => {}
+    };
+
+    bless $self, $class;
+    return $self;
+}
+
+sub addArtist
+{   
+    my $self = shift();
+    my $artist = shift();
+
+    $artist = $self->normalize($artist);
+
+    $self->{_artists}->{$artist} = 0 
+        if (not exists $self->{_artists}->{$artist});
+    $self->{_artists}->{$artist}++;
+}
+
+sub dump
+{
+    my $self = shift();
+
+    my $hashref = $self->{_artists};
+    while ((my $key, my $value) = each(%$hashref))    {
+        print ("$key: $value \n");
+    }
+}
+
+sub normalize
+{
+    my $self = shift();
+    my $name = shift();
+
+    # Remove certain characters from a name
+    # e.g.  Coheed & Cambria => Coheed and Cambria
+    #       A.F.I. => AFI
+    $name =~ s/&/and/g;
+    $name =~ s/\.//g;
+
+    # convert names to upper camel case
+    # e.g. COHEED AND CAMBRIA  to  Coheed and Cambria
+    # Note: the proper words will remain lower case unless 
+    #   they lead the phrase.
+    #   see @lower_words defined at the top of the file
+    $name = lc $name;
+    my @words = split(/\s/, $name);
+    $name = '';
+    my $i = 0;
+    foreach my $word (@words)  {
+        $word = trim($word);
+        if (    not ($word =~ m/\s/) and 
+                length($word) > 0)    {
+            my $normWord = $word;
+            if (    $i == 0 or 
+                    not grep (/^$word$/, @lower_words)) {
+                $normWord = uc (substr ($word, 0, 1)) . substr ($word, 1);
+            } 
+            if (isRomanNumerals($word)) {
+                $normWord = uc($word);
+            }
+            $name .= $normWord . ' ';
+            $i++;
+        }
+    }
+    
+    chop $name;
+    return $name; 
+}
+
+
+sub isRomanNumerals
+{
+    my $name = shift();
+
+    $name = uc ($name);
+    
+    return ($name =~ m/^[IVMCDL]+$/i);
+}
+
+sub romanToArabic
+{
+    my $str = new String(shift());
+
+    my $numerals = {
+        ''      => 0,
+        'I'     => 1,
+        'V'     => 5,
+        'X'     => 10,
+        'L'     => 50,
+        'C'     => 100,
+        'D'     => 500,
+        'M'     => 1000
+    }
+
+    my $len = length($str);
+    my $c1 = '';
+    my $c2 = '';
+    my $total = 0;
+    for (my $i = 0; $i < $len; $i++)    {
+        $c2 = $c1;
+        $c1 = substr($str, $i, 1);
+
+        if ($c1 eq $c2 or $c2 eq '')    {
+            $total += $numerals->{$c1};
+        }
+    }
+}
+
+sub trim($)
+{
+    my $string = shift;
+    $string =~ s/^\s+//;
+    $string =~ s/\s+$//;
+    return $string;
+}
+
+
+1;
